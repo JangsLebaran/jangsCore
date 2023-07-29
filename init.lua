@@ -1,3 +1,11 @@
+items = {
+    {name = "World Lock", id = 242, emote = "<:world_lock:1011929928519925820>"},
+    {name = "Pepper Tree", id = 4584, emote = "<:pepper_tree:1011930020836544522>"},
+    {name = "Pepper Tree Seed", id = 4585, emote = "<:pepper_tree_seed:1011930051744374805>"},
+    {name = "Pepper Tree", id = 3004, emote = "<:pepper_tree:1011930020836544522>"},
+    {name = "Pepper Tree Seed", id = 3005, emote = "<:pepper_tree_seed:1011930051744374805>"},
+} -- List of item inf
+
 list = {}
 tree = {}
 waktu = {}
@@ -19,189 +27,43 @@ webhookLink = Bot[getBot().name:upper()].webhookLink
 upgradeBackpack = Bot[getBot().name:upper()].upgradeBackpack
 jangslot = Bot[getBot().name:upper()].jangslot
 
-function detect()
-    local store = {}
-    local count = 0
-    for _,tile in pairs(getTiles()) do
-        if tile.flags == 0 and tile.fg ~= 0 then
-            if store[tile.fg] then
-                store[tile.fg].count = store[tile.fg].count + 1
-            else
-                store[tile.fg] = {fg = tile.fg, count = 1}
-            end
-        end
-    end
-    for _,tile in pairs(store) do
-        if tile.count > count then
-            count = tile.count
-            itmSeed = tile.fg
-            itmId = itmSeed - 1
-        end
-    end
-    if not includesNumber(goods,itmId) then
-        table.insert(goods,itmId)
-    end
-    if not includesNumber(goods,itmSeed) then
-        table.insert(goods,itmSeed)
+sleep(jangslot * delayExe)
+
+for i = start,#worldList do
+    table.insert(worlds,worldList[i])
+end
+
+if looping then
+    for i = 0,start - 1 do
+        table.insert(worlds,worldList[i])
     end
 end
 
-function includesNumber(table, number)
-    for _,num in pairs(table) do
-        if num == number then
-            return true
-        end
-    end
-    return false
+for _,pack in pairs(packList) do
+    table.insert(goods,pack)
 end
 
-function bl(world)
-    blist = {}
-    fossil[world] = 0
-    for _,tile in pairs(getTiles()) do
-        if tile.fg == 6 then
-            doorX = tile.x
-            doorY = tile.y
-        elseif tile.fg == 3918 then
-            fossil[world] = fossil[world] + 1
-        end
-    end
-    if blacklistTile then
-        for _,tile in pairs(blacklist) do
-            table.insert(blist,{x = doorX + tile.x, y = doorY + tile.y})
-        end
-    end
+for i = math.floor(tileNumber/2),1,-1 do
+    i = i * -1
+    table.insert(tileBreak,i)
+end
+for i = 0, math.ceil(tileNumber/2) - 1 do
+    table.insert(tileBreak,i)
 end
 
-function tilePunch(x,y)
-    for _,num in pairs(tileBreak) do
-        if getTile(x - 1,y + num).fg ~= 0 or getTile(x - 1,y + num).bg ~= 0 then
-            return true
-        end
-    end
-    return false
+if (showList - 1) >= #worldList then
+    customShow = false
 end
 
-function tilePlace(x,y)
-    for _,num in pairs(tileBreak) do
-        if getTile(x - 1,y + num).fg == 0 and getTile(x - 1,y + num).bg == 0 then
-            return true
-        end
-    end
-    return false
+if not detectFarmable then
+    table.insert(goods,itmId)
+    table.insert(goods,itmSeed)
 end
 
-function check(x,y)
-    for _,tile in pairs(blist) do
-        if x == tile.x and y == tile.y then
-            return false
-        end
-    end
-    return true
+if dontPlant then
+    separatePlant = false
 end
 
-function warp(world,id)
-    cok = 0
-    while getBot().world ~= world:upper() and not nuked do
-        while getBot().status ~= "online" do
-            connect()
-            sleep(5000)
-        end
-        sendPacket("action|join_request\nname|"..world:upper().."\ninvitedWorld|0",3)
-        sleep(5000)
-        if cok == 10 then
-            nuked = true
-        else
-            cok = cok + 1
-        end
-    end
-    if id ~= "" and not nuked then
-        while getTile(math.floor(getBot().x / 32),math.floor(getBot().y / 32)).fg == 6 and not nuked do
-            while getBot().status ~= "online" do
-                connect()
-                sleep(5000)
-            end
-            sendPacket("action|join_request\nname|"..world:upper().."|"..id:upper().."\ninvitedWorld|0",3)
-            sleep(1000)
-        end
-    end
-end
-
-function reconnect(world,id,x,y)
-    if getBot().status ~= "online" then
-        connect()
-        sleep(10000)
-        while true do
-            sleep(10000)
-            if getBot().status == "suspended" or getBot().status == "banned" then
-                while true do
-                    sleep(10000)
-                end
-            end
-            while getBot().status == "online" and getBot().world ~= world:upper() do
-                sendPacket("action|join_request\nname|"..world:upper().."\ninvitedWorld|0", 3)
-                sleep(5000)
-            end
-            if getBot().status == "online" and getBot().world == world:upper() then
-                if id ~= "" then
-                    while getTile(math.floor(getBot().x / 32),math.floor(getBot().y / 32)).fg == 6 do
-                        sendPacket("action|join_request\nname|"..world:upper().."|"..id:upper().."\ninvitedWorld|0", 3)
-                        sleep(1000)
-                    end
-                end
-                if x and y and getBot().status == "online" and getBot().world == world:upper() then
-                    while math.floor(getBot().x / 32) ~= x or math.floor(getBot().y / 32) ~= y do
-                        findPath(x,y,100)
-                    end
-                end
-                if getBot().status == "online" and getBot().world == world:upper() then
-                    if x and y then
-                        if getBot().status == "online" and math.floor(getBot().x / 32) == x and math.floor(getBot().y / 32) == y then
-                            break
-                        end
-                    elseif getBot().status == "online" then
-                        break
-                    end
-                end
-            end
-        end
-    end
-end
-
-
-function round(n)
-    return n % 1 > 0.5 and math.ceil(n) or math.floor(n)
-end
-
-function tileDrop1(x,y,num)
-    local count = 0
-    local stack = 0
-    for _,obj in pairs(getObjects()) do
-        if round(obj.x / 32) == x and math.floor(obj.y / 32) == y then
-            count = count + obj.count
-            stack = stack + 1
-        end
-    end
-    if stack < 15 and count <= (4000 - num) then
-        return true
-    end
-    return false
-end
-
-function tileDrop2(x,y,num)
-    local count = 0
-    local stack = 0
-    for _,obj in pairs(getObjects()) do
-        if round(obj.x / 32) == x and math.floor(obj.y / 32) == y then
-            count = count + obj.count
-            stack = stack + 1
-        end
-    end
-    if stack < 15 and count <= (4000 - num) then
-        return true
-    end
-    return false
-end
 
 function jandaBohay(jdn,px,py)
     place(jdn,px,py)
@@ -374,6 +236,338 @@ local function gaulWord()
     say(kataGaul)
 end
 
+function includesNumber(table, number)
+    for _,num in pairs(table) do
+        if num == number then
+            return true
+        end
+    end
+    return false
+end
+
+function detect()
+    local store = {}
+    local count = 0
+    for _,tile in pairs(getTiles()) do
+        if tile.flags == 0 and tile.fg ~= 0 then
+            if store[tile.fg] then
+                store[tile.fg].count = store[tile.fg].count + 1
+            else
+                store[tile.fg] = {fg = tile.fg, count = 1}
+            end
+        end
+    end
+    for _,tile in pairs(store) do
+        if tile.count > count then
+            count = tile.count
+            itmSeed = tile.fg
+            itmId = itmSeed - 1
+        end
+    end
+    if not includesNumber(goods,itmId) then
+        table.insert(goods,itmId)
+    end
+    if not includesNumber(goods,itmSeed) then
+        table.insert(goods,itmSeed)
+    end
+end
+
+function bl(world)
+    blist = {}
+    fossil[world] = 0
+    for _,tile in pairs(getTiles()) do
+        if tile.fg == 6 then
+            doorX = tile.x
+            doorY = tile.y
+        elseif tile.fg == 3918 then
+            fossil[world] = fossil[world] + 1
+        end
+    end
+    if blacklistTile then
+        for _,tile in pairs(blacklist) do
+            table.insert(blist,{x = doorX + tile.x, y = doorY + tile.y})
+        end
+    end
+end
+
+function tilePunch(x,y)
+    for _,num in pairs(tileBreak) do
+        if getTile(x - 1,y + num).fg ~= 0 or getTile(x - 1,y + num).bg ~= 0 then
+            return true
+        end
+    end
+    return false
+end
+
+function tilePlace(x,y)
+    for _,num in pairs(tileBreak) do
+        if getTile(x - 1,y + num).fg == 0 and getTile(x - 1,y + num).bg == 0 then
+            return true
+        end
+    end
+    return false
+end
+
+function check(x,y)
+    for _,tile in pairs(blist) do
+        if x == tile.x and y == tile.y then
+            return false
+        end
+    end
+    return true
+end
+
+function warp(world,id)
+    cok = 0
+    while getBot().world ~= world:upper() and not nuked do
+        while getBot().status ~= "online" do
+            sleep(7000)
+        end
+        sendPacket("action|join_request\nname|"..world:upper().."\ninvitedWorld|0", 3)
+        sleep(7000)
+        if cok == 10 then
+            nuked = true
+        else
+            cok = cok + 1
+        end
+    end
+    if id ~= "" and not nuked then
+        while getTile(math.floor(getBot().x / 32),math.floor(getBot().y / 32)).fg == 6 and not nuked do
+            while getBot().status ~= "online" do
+                sleep(7000)
+            end
+            sendPacket("action|join_request\nname|"..world:upper().."|"..id:upper().."\ninvitedWorld|0", 3)
+            sleep(7000)
+        end
+    end
+end
+
+function waktuWorld()
+    strWaktu = ""
+    if customShow then
+        for i = showList,1,-1 do
+            newList = listNow - i
+            if newList <= 0 then
+                newList = newList + totalList
+            end
+            strWaktu = strWaktu.."\n"..worldList[newList]:upper().." ( "..(waktu[worldList[newList]] or "?").." | "..(tree[worldList[newList]] or "?").." )"
+        end
+    else
+        for _,world in pairs(worldList) do
+            strWaktu = strWaktu.."\n"..world:upper().." ( "..(waktu[world] or "?").." | "..(tree[world] or "?").." )"
+        end
+    end
+end
+
+function botInfo(info)
+    te = os.time() - t
+    fossill = fossil[getBot().world] or 0
+    local text = [[
+        $webHookUrl = "]]..webhookLink..[[/messages/]]..messageId..[["
+        $CPU = Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average | Select -ExpandProperty Average
+        $CompObject =  Get-WmiObject -Class WIN32_OperatingSystem
+        $Memory = ((($CompObject.TotalVisibleMemorySize - $CompObject.FreePhysicalMemory)*100)/ $CompObject.TotalVisibleMemorySize)
+        $RAM = [math]::Round($Memory, 0)
+        $thumbnailObject = @{
+            url = "https://media.discordapp.net/attachments/1092096661590900957/1134243811296563220/Jangs.png?width=409&height=409"
+        }
+        $footerObject = @{
+            text = "]]..(os.date("!%a %b %d, %Y at %I:%M %p", os.time() + 7 * 60 * 60))..[["
+        }
+        $fieldArray = @(
+            @{
+                name = " "
+                value = "<:pickaxe:1011931845065183313> | ]]..info..[["
+                inline = "true"
+            }
+            @{
+                name = " "
+                value = "<:botak:1106131282041253899> | ]]..getBot().name..[["
+                inline = "true"
+            }
+            @{
+                name = " "
+                value = "<:oni:1087808466447503422> | ]]..getBot().status..[["
+                inline = "true"
+            }
+            @{
+                name = " "
+                value = "<:gems:994218103032520724> | ]]..findItem(112)..[["
+                inline = "true"
+            }
+            @{
+                name = " "
+                value = "<:globe:1011929997679796254> | ]]..getBot().world..[["
+                inline = "true"
+            }
+            @{
+                name = ""
+                value = "<:dana:1091996794680004709> | ]]..profit..[[ ]]..pack..[["
+                inline = "true"
+            }
+            @{
+                name = ""
+                value = "Up time | ]]..math.floor(te/86400)..[[ Days ]]..math.floor(te%86400/3600)..[[ Hours ]]..math.floor(te%86400%3600/60)..[[ Minutes"
+                inline = "false"
+            }
+        )
+        $embedObject = @{
+            title = "<:pcrown:1070928063849844787> **Bot Information** | Ke - ]]..Bot[getBot().name:upper()].jangslot..[["
+            color = "15938027"
+            thumbnail = $thumbnailObject
+            footer = $footerObject
+            fields = $fieldArray
+        }
+        $embedArray = @($embedObject)
+        $payload = @{
+            embeds = $embedArray
+        }
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-RestMethod -Uri $webHookUrl -Body ($payload | ConvertTo-Json -Depth 4) -Method Patch -ContentType 'application/json'
+    ]]
+    local file = io.popen("powershell -command -", "w")
+    file:write(text)
+    file:close()
+end
+
+function packInfo(link,id,desc)
+    local text = [[
+        $webHookUrl = "]]..link..[[/messages/]]..id..[["
+        $thumbnailObject = @{
+            url = "https://media.discordapp.net/attachments/1092096661590900957/1134243811296563220/Jangs.png?width=409&height=409"
+        }
+        $footerObject = @{
+            text = "]]..(os.date("!%a %b %d, %Y at %I:%M %p", os.time() + 7 * 60 * 60))..[["
+        }
+        $fieldArray = @(
+            @{
+                name = "Dropped Items"
+                value = "]]..desc..[["
+                inline = "false"
+            }
+        )
+        $embedObject = @{
+            title = "<:pcrown:1070928063849844787> **PACK/SEED INFORMATION**"
+            color = "15938027"
+            thumbnail = $thumbnailObject
+            footer = $footerObject
+            fields = $fieldArray
+        }
+        $embedArray = @($embedObject)
+        $payload = @{
+            embeds = $embedArray
+        }
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-RestMethod -Uri $webHookUrl -Body ($payload | ConvertTo-Json -Depth 4) -Method Patch -ContentType 'application/json'
+    ]]
+    local file = io.popen("powershell -command -", "w")
+    file:write(text)
+    file:close()
+end
+
+function reconInfo()
+    local text = [[
+        $webHookUrl = "]]..webhookOffline..[["
+        $payload = @{
+            content = "]]..getBot().name..[[ (jangslot-]]..Bot[getBot().name:upper()].jangslot..[[) status is ]]..getBot().status..[[ @everyone"
+        }
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        Invoke-RestMethod -Uri $webHookUrl -Body ($payload | ConvertTo-Json -Depth 4) -Method Post -ContentType 'application/json'
+    ]]
+    local file = io.popen("powershell -command -", "w")
+    file:write(text)
+    file:close()
+end
+
+function reconnect(world,id,x,y)
+    if getBot().status ~= "online" then
+        botInfo("Reconnecting")
+        sleep(100)
+        reconInfo()
+        sleep(100)
+        while true do
+            connect()
+            sleep(10000)
+            if getBot().status == "suspended" or getBot().status == "banned" then
+                botInfo(getBot().status)
+                sleep(100)
+                reconInfo()
+                sleep(100)
+                while true do
+                    sleep(10000)
+                end
+            end
+            while getBot().status == "online" and getBot().world ~= world:upper() do
+                sendPacket("action|join_request\nname|"..world:upper().."\ninvitedWorld|0", 3)
+                sleep(5000)
+            end
+            if getBot().status == "online" and getBot().world == world:upper() then
+                if id ~= "" then
+                    while getTile(math.floor(getBot().x / 32),math.floor(getBot().y / 32)).fg == 6 do
+                        sendPacket("action|join_request\nname|"..world:upper().."|"..id:upper().."\ninvitedWorld|0", 3)
+                        sleep(1000)
+                    end
+                end
+                if x and y and getBot().status == "online" and getBot().world == world:upper() then
+                    while math.floor(getBot().x / 32) ~= x or math.floor(getBot().y / 32) ~= y do
+                        findPath(x,y)
+                        sleep(100)
+                    end
+                end
+                if getBot().status == "online" and getBot().world == world:upper() then
+                    if x and y then
+                        if getBot().status == "online" and math.floor(getBot().x / 32) == x and math.floor(getBot().y / 32) == y then
+                            break
+                        end
+                    elseif getBot().status == "online" then
+                        break
+                    end
+                end
+            end
+        end
+        botInfo("Succesfully Reconnected")
+        sleep(100)
+        reconInfo()
+        sleep(100)
+        botInfo("Farming")
+        sleep(100)
+    end
+end
+
+function round(n)
+    return n % 1 > 0.5 and math.ceil(n) or math.floor(n)
+end
+
+function tileDrop1(x,y,num)
+    local count = 0
+    local stack = 0
+    for _,obj in pairs(getObjects()) do
+        if round(obj.x / 32) == x and math.floor(obj.y / 32) == y then
+            count = count + obj.count
+            stack = stack + 1
+        end
+    end
+    if stack < 15 and count <= (4000 - num) then
+        return true
+    end
+    return false
+end
+
+function tileDrop2(x,y,num)
+    local count = 0
+    local stack = 0
+    for _,obj in pairs(getObjects()) do
+        if round(obj.x / 32) == x and math.floor(obj.y / 32) == y then
+            count = count + obj.count
+            stack = stack + 1
+        end
+    end
+    if stack < 15 and count <= (4000 - num) then
+        return true
+    end
+    return false
+end
+
 function pukulBlock()
     gaulWord()
     sleep(100)
@@ -416,6 +610,43 @@ function storePack()
     end
 end
 
+function itemInfo(ids)
+    local result = {name = "null", id = ids, emote = "null"}
+    for _,item in pairs(items) do
+        if item.id == ids then
+            result.name = item.name
+            result.emote = item.emote
+            return result
+        end
+    end
+    return result
+end
+
+function infoPack()
+    local store = {}
+    for _,obj in pairs(getObjects()) do
+        if store[obj.id] then
+            store[obj.id].count = store[obj.id].count + obj.count
+        else
+            store[obj.id] = {id = obj.id, count = obj.count}
+        end
+    end
+    local str = ""
+    for _,object in pairs(store) do
+        str = str.."\n"..itemInfo(object.id).emote.." "..itemInfo(object.id).name.." : x"..object.count
+    end
+    return str
+end
+
+function join()
+    botInfo("Clearing World Logs")
+    sleep(100)
+    for _,wurld in pairs(worldToJoin) do
+        warp(wurld,"")
+        sleep(joinDelay)
+        reconnect(wurld,"")
+    end
+end
 
 function storeSeed(world)
     gaulWord()
@@ -705,40 +936,67 @@ function harvest(world)
     end
 end
 
-function itemInfo(ids)
-    local result = {name = "null", id = ids, emote = "null"}
-    for _,item in pairs(items) do
-        if item.id == ids then
-            result.name = item.name
-            result.emote = item.emote
-            return result
-        end
-    end
-    return result
+for i = 1,upgradeBackpack do
+    sendPacket("action|buy\nitem|upgrade_backpack", 2)
+    sleep(500)
 end
 
-function infoPack()
-    local store = {}
-    for _,obj in pairs(getObjects()) do
-        if store[obj.id] then
-            store[obj.id].count = store[obj.id].count + obj.count
+while true do
+    for index,world in pairs(worlds) do
+        waktuWorld()
+        sleep(100)
+        warp(world,doorFarm)
+        sleep(1000)
+        if not nuked then
+            if detectFarmable then
+                detect()
+                sleep(100)
+            end
+            collectSet(true,3)
+            sleep(100)
+            bl(world)
+            sleep(100)
+            botInfo("Starting "..world)
+            sleep(100)
+            tt = os.time()
+            findPath(1,21)
+            sleep(100)
+            gaulWord()
+            sleep(100)
+            harvest(world)
+            sleep(100)
+            tt = os.time() - tt
+            botInfo("Finished "..world)
+            sleep(100)
+            waktu[world] = math.floor(tt/3600).." Hours "..math.floor(tt%3600/60).." Minutes"
+            sleep(100)
+            if joinWorldAfterStore then
+                join()
+                sleep(100)
+            end
         else
-            store[obj.id] = {id = obj.id, count = obj.count}
+            waktu[world] = "NUKED"
+            tree[world] = "NUKED"
+            nuked = false
+            sleep(5000)
+        end
+        if start < stop then
+            start = start + 1
+        else
+            if restartTimer then
+                waktu = {}
+                tree = {}
+            end
+            start = 1
+            loop = loop + 1
         end
     end
-    local str = ""
-    for _,object in pairs(store) do
-        str = str.."\n"..itemInfo(object.id).emote.." "..itemInfo(object.id).name.." : x"..object.count
-    end
-    return str
-end
-
-function join()
-    botInfo("Clearing World Logs")
-    sleep(100)
-    for _,wurld in pairs(worldToJoin) do
-        warp(wurld,"")
-        sleep(joinDelay)
-        reconnect(wurld,"")
+    if not looping then
+        waktuWorld()
+        sleep(100)
+        botInfo("Finished All World, Removing Bot!")
+        sleep(100)
+        removeBot(getBot().name)
+        break
     end
 end
