@@ -1,3 +1,24 @@
+list = {}
+tree = {}
+waktu = {}
+worlds = {}
+fossil = {}
+tileBreak = {}
+loop = 0
+profit = 0
+listNow = 1
+strWaktu = ""
+t = os.time()
+start = Bot[getBot().name:upper()].startFrom
+stop = #Bot[getBot().name:upper()].worldList
+doorFarm = Bot[getBot().name:upper()].doorFarm
+messageId = Bot[getBot().name:upper()].messageId
+worldList = Bot[getBot().name:upper()].worldList
+totalList = #Bot[getBot().name:upper()].worldList
+webhookLink = Bot[getBot().name:upper()].webhookLink
+upgradeBackpack = Bot[getBot().name:upper()].upgradeBackpack
+jangslot = Bot[getBot().name:upper()].jangslot
+
 function detect()
     local store = {}
     local count = 0
