@@ -1,3 +1,18 @@
+tileNumber = 1 -- Customable from 1 to 5
+customTile = false -- Set true if custom breaking pos
+customX = 0 -- Custom breaking pos x
+customY = 0 -- Custom breaking pos y
+root = false -- Set true if farming root
+separatePlant = true -- Set true if separate harvest and plant
+dontPlant = false -- Set true if store all seed and dont plant any
+joinWorldAfterStore = true -- Set true if join random world after each rotation
+worldToJoin = {"BUYMASK","BUYWHEAT"} -- List of world to join after finishing 1 world
+joinDelay = 5000 -- World join delay
+restartTimer = true -- Set true if restart time of farm after looping
+customShow = false -- Set true if showing only custom amount of world
+showList = 3 -- Number of custom worlds to be shown
+goods = {98, 18, 32, 6336, 9640} -- Item whitelist (don't edit)
+
 items = {
     {name = "World Lock", id = 242, emote = "<:world_lock:1011929928519925820>"},
     {name = "Pepper Tree", id = 4584, emote = "<:pepper_tree:1011930020836544522>"},
