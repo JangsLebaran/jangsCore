@@ -367,3 +367,357 @@ function pukulBlock()
         end
     end
 end
+
+function storePack()
+    gaulWord()
+    sleep(100)
+    for _,pack in pairs(packList) do
+        for _,tile in pairs(getTiles()) do
+            if tile.fg == patokanPack or tile.bg == patokanPack then
+                if tileDrop1(tile.x,tile.y,findItem(pack)) then
+                    while math.floor(getBot().x / 32) ~= (tile.x - 1) or math.floor(getBot().y / 32) ~= tile.y do
+                        findPath(tile.x - 1,tile.y)
+                        sleep(1000)
+                        reconnect(storagePack,doorPack,tile.x - 1,tile.y)
+                    end
+                    while findItem(pack) > 0 and tileDrop1(tile.x,tile.y,findItem(pack)) do
+                        sendPacket("action|drop\n|itemID|"..pack, 2)
+                        sendPacket("action|dialog_return\ndialog_name|drop_item\nitemID|"..pack.."|\ncount|"..findItem(pack), 2)
+                        sleep(500)
+                        reconnect(storagePack,doorPack,tile.x - 1,tile.y)
+                    end
+                end
+            end
+            if findItem(pack) == 0 then
+                break
+            end
+        end
+    end
+end
+
+
+function storeSeed(world)
+    gaulWord()
+    sleep(100)
+    botInfo("Storing Seed")
+    sleep(100)
+    collectSet(false,3)
+    sleep(100)
+    warp(storageSeed,doorSeed)
+    sleep(100)
+    for _,tile in pairs(getTiles()) do
+        if tile.fg == patokanSeed or tile.bg == patokanSeed then
+            if tileDrop2(tile.x,tile.y,100) then
+                while math.floor(getBot().x / 32) ~= (tile.x - 1) or math.floor(getBot().y / 32) ~= tile.y do
+                    findPath(tile.x - 1,tile.y)
+                    sleep(1000)
+                    reconnect(storageSeed,doorSeed,tile.x - 1,tile.y)
+                end
+                while findItem(itmSeed) >= 100 and tileDrop2(tile.x,tile.y,100) do
+                    sendPacket("action|drop\n|itemID|"..itmSeed, 2)
+                    sendPacket("action|dialog_return\ndialog_name|drop_item\nitemID|"..itmSeed.."|\ncount|100", 2)
+                    sleep(500)
+                    reconnect(storageSeed,doorSeed,tile.x - 1,tile.y)
+                end
+            end
+            if findItem(itmSeed) < 100 then
+                break
+            end
+        end
+    end
+    packInfo(webhookLinkSeed,messageIdSeed,infoPack())
+    sleep(100)
+    if joinWorldAfterStore then
+        join()
+        sleep(100)
+    end
+    warp(world,doorFarm)
+    sleep(100)
+    collectSet(true,3)
+    sleep(100)
+    botInfo("Farming")
+    sleep(100)
+end
+
+function buy()
+    gaulWord()
+    sleep(100)
+    botInfo("Buying and Storing Pack")
+    sleep(100)
+    collectSet(false,3)
+    sleep(100)
+    warp(storagePack,doorPack)
+    sleep(100)
+    while findItem(112) >= packPrice do
+        for i = 1, packLimit do
+            sendPacket("action|buy\nitem|"..packName, 2)
+            sleep(1750)
+            if findItem(packList[1]) == 0 then
+                sendPacket("action|buy\nitem|upgrade_backpack", 2)
+                sleep(1750)
+            else
+                profit = profit + 1
+            end
+            if findItem(112) < packPrice then
+                break
+            end
+        end
+        storePack()
+        sleep(1750)
+        reconnect(storagePack,doorPack)
+    end
+    packInfo(webhookLinkPack,messageIdPack,infoPack())
+    sleep(100)
+    if joinWorldAfterStore then
+        join()
+        sleep(100)
+    end
+end
+
+function clear()
+    for _,item in pairs(getInventory()) do
+        if not includesNumber(goods, item.id) then
+            sendPacket("action|trash\n|itemID|"..item.id, 2)
+            sendPacket("action|dialog_return\ndialog_name|trash_item\nitemID|"..item.id.."|\ncount|"..item.count, 2) 
+            sleep(200)
+        end
+    end
+end
+
+function plant(world)
+    gaulWord()
+    sleep(100)
+    for _,tile in pairs(getTiles()) do
+       if tile.flags ~= 0 and tile.y ~= 0 and getTile(tile.x,tile.y - 1).fg == 0 then
+          if not blacklistTile or check(tile.x,tile.y) then
+             findPath(tile.x,tile.y - 1)
+             if getTile(tile.x,tile.y - 1).fg == 0 and getTile(tile.x,tile.y).flags ~= 0 then
+                jandaBohay(itmSeed,0,0)
+                sleep(delayPlant)
+                reconnect(world,doorFarm,tile.x,tile.y - 1)
+             end
+          end
+       end
+       if findItem(itmSeed) == 0 then
+          break
+       end
+    end
+    if findItem(itmSeed) >= 100 then
+       storeSeed(world)
+       sleep(100)
+    end
+end
+
+function pnb(world)
+    gaulWord()
+    sleep(100)
+    if findItem(itmId) >= tileNumber then
+        ex = math.floor(getBot().x / 32)
+        ye = math.floor(getBot().y / 32)
+        if tileNumber > 1 then
+            while findItem(itmId) >= tileNumber and findItem(itmSeed) < 190 do
+                while tilePlace(ex,ye) do
+                    for _,i in pairs(tileBreak) do
+                        if getTile(ex - 1,ye + i).fg == 0 and getTile(ex - 1,ye + i).bg == 0 then
+                            jandaBohay(itmId,-1,i)
+                            sleep(delayPlace)
+                            reconnect(world,doorFarm,ex,ye)
+                        end
+                    end
+                end
+                while tilePunch(ex,ye) do
+                    for _,i in pairs(tileBreak) do
+                        if getTile(ex - 1,ye + i).fg ~= 0 or getTile(ex - 1,ye + i).bg ~= 0 then
+                            mucikariPdi(-1,i)
+                            sleep(delayPunch)
+                            reconnect(world,doorFarm,ex,ye)
+                        end
+                    end
+                end
+                reconnect(world,doorFarm,ex,ye)
+            end
+            pukulBlock()
+            sleep(100)
+        else
+            while findItem(itmId) > 0 and findItem(itmSeed) < 190 do
+                while getTile(ex - 1,ye).fg == 0 and getTile(ex - 1,ye).bg == 0 do
+                    jandaBohay(itmId,-1,0)
+                    sleep(delayPlace)
+                    reconnect(world,doorFarm,ex,ye)
+                end
+                while getTile(ex - 1,ye).fg ~= 0 or getTile(ex - 1,ye).bg ~= 0 do
+                    mucikariPdi(-1,0)
+                    sleep(delayPunch)
+                    reconnect(world,doorFarm,ex,ye)
+                end
+            end
+        end
+        pukulBlock()
+        sleep(100)
+        clear()
+        sleep(100)
+        if buyAfterPNB and findItem(112) >= minimumGem then
+            buy()
+            sleep(100)
+            warp(world,doorFarm)
+            sleep(100)
+            collectSet(true,3)
+            sleep(100)
+            botInfo("Farming")
+            sleep(100)
+        end
+    end
+end
+
+function harvest(world)
+    botInfo("Farming")
+    sleep(100)
+    gaulWord()
+    sleep(100)
+    tree[world] = 0
+    if dontPlant then
+        for _,tile in pairs(getTiles()) do
+            if getTile(tile.x,tile.y - 1).ready then
+                if not blacklistTile or check(tile.x,tile.y) then
+                    tree[world] = tree[world] + 1
+                    findPath(tile.x,tile.y - 1)
+                    while getTile(tile.x,tile.y - 1).fg == itmSeed do
+                        mucikariPdi(0,0)
+                        sleep(delayHarvest)
+                        reconnect(world,doorFarm,tile.x,tile.y - 1)
+                    end
+                    if root then
+                        while getTile(tile.x, tile.y).fg == (itmId + 4) and getTile(tile.x, tile.y).flags ~= 0 do
+                            mucikariPdi(0, 1)
+                            sleep(delayHarvest)
+                            reconnect(world,doorFarm,tile.x,tile.y - 1)
+                        end
+                        clear()
+                        sleep(100)
+                    end
+                end
+            end
+            if findItem(itmId) >= 190 then
+                pnb(world)
+                sleep(100)
+                if findItem(itmSeed) >= 190 then
+                    storeSeed(world)
+                    sleep(100)
+                end
+            end
+        end
+    elseif not separatePlant then
+        for _,tile in pairs(getTiles()) do
+            if getTile(tile.x,tile.y - 1).ready or (tile.flags ~= 0 and tile.y ~= 0 and getTile(tile.x,tile.y - 1).fg == 0) then
+                if not blacklistTile or check(tile.x,tile.y) then
+                    tree[world] = tree[world] + 1
+                    findPath(tile.x,tile.y - 1)
+                    while getTile(tile.x,tile.y - 1).fg == itmSeed do
+                        mucikariPdi(0,0)
+                        sleep(delayHarvest)
+                        reconnect(world,doorFarm,tile.x,tile.y - 1)
+                    end
+                    if root then
+                        while getTile(tile.x, tile.y).fg == (itmId + 4) and getTile(tile.x, tile.y).flags ~= 0 do
+                            mucikariPdi(0, 1)
+                            sleep(delayHarvest)
+                            reconnect(world,doorFarm,tile.x,tile.y - 1)
+                        end
+                        clear()
+                        sleep(100)
+                    end
+                    while getTile(tile.x,tile.y - 1).fg == 0 and getTile(tile.x,tile.y).flags ~= 0 do
+                        jandaBohay(itmSeed,0,0)
+                        sleep(delayPlant)
+                        reconnect(world,doorFarm,tile.x,tile.y - 1)
+                    end
+                end
+            end
+            if findItem(itmId) >= 190 then
+                pnb(world)
+                sleep(100)
+                if findItem(itmSeed) >= 190 then
+                    storeSeed(world)
+                    sleep(100)
+                end
+            end
+        end
+    else
+        for _,tile in pairs(getTiles()) do
+            if getTile(tile.x,tile.y - 1).ready then
+                if not blacklistTile or check(tile.x,tile.y) then
+                    tree[world] = tree[world] + 1
+                    findPath(tile.x,tile.y - 1)
+                    while getTile(tile.x,tile.y - 1).fg == itmSeed do
+                        mucikariPdi(0,0)
+                        sleep(delayHarvest)
+                        reconnect(world,doorFarm,tile.x,tile.y - 1)
+                    end
+                    if root then
+                        while getTile(tile.x, tile.y).fg == (itmId + 4) and getTile(tile.x, tile.y).flags ~= 0 do
+                            mucikariPdi(0, 1)
+                            sleep(delayHarvest)
+                            reconnect(world,doorFarm,tile.x,tile.y - 1)
+                        end
+                        clear()
+                        sleep(100)
+                    end
+                end
+            end
+            if findItem(itmId) >= 190 then
+                pnb(world)
+                sleep(100)
+                plant(world)
+                sleep(100)
+            end
+        end
+    end
+    pnb(world)
+    sleep(100)
+    if separatePlant then
+        plant(world)
+        sleep(100)
+    end
+    if findItem(112) >= minimumGem then
+        buy()
+        sleep(100)
+    end
+end
+
+function itemInfo(ids)
+    local result = {name = "null", id = ids, emote = "null"}
+    for _,item in pairs(items) do
+        if item.id == ids then
+            result.name = item.name
+            result.emote = item.emote
+            return result
+        end
+    end
+    return result
+end
+
+function infoPack()
+    local store = {}
+    for _,obj in pairs(getObjects()) do
+        if store[obj.id] then
+            store[obj.id].count = store[obj.id].count + obj.count
+        else
+            store[obj.id] = {id = obj.id, count = obj.count}
+        end
+    end
+    local str = ""
+    for _,object in pairs(store) do
+        str = str.."\n"..itemInfo(object.id).emote.." "..itemInfo(object.id).name.." : x"..object.count
+    end
+    return str
+end
+
+function join()
+    botInfo("Clearing World Logs")
+    sleep(100)
+    for _,wurld in pairs(worldToJoin) do
+        warp(wurld,"")
+        sleep(joinDelay)
+        reconnect(wurld,"")
+    end
+end
